@@ -136,12 +136,12 @@ class HubConnection {
   }
 
   /// Starts the connection.
-  Future<void>? start() {
-    _startFuture = _startWithStateTransitions();
+  Future<void>? start(Function callback) {
+    _startFuture = _startWithStateTransitions(callback);
     return _startFuture;
   }
 
-  Future<void> _startWithStateTransitions() async {
+  Future<void> _startWithStateTransitions(Function callBack) async {
     if (_connectionState != HubConnectionState.disconnected) {
       return Future.error(Exception(
           'Cannot start a HubConnection that is not in the \'Disconnected\' state.'));
@@ -156,10 +156,12 @@ class HubConnection {
       _connectionState = HubConnectionState.connected;
       _connectionStarted = true;
       _logger!(LogLevel.debug, 'HubConnection connected successfully.');
+      callBack(true);
     } catch (e) {
       _connectionState = HubConnectionState.disconnected;
       _logger!(LogLevel.debug,
-          'HubConnection failed to start successfully because of error \'{$e.toString()}\'.');
+          'HubConnection failed to start because of error \'{$e.toString()}\'.');
+      callBack(false);
       return Future.error(e);
     }
   }
